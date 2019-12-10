@@ -7,18 +7,16 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
-import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
-
-import java.util.ArrayList;
-import java.util.List;
+import android.view.View;
+import android.widget.Toast;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import yskim.sample.mvpsample.adpater.ImageAdapter;
-import yskim.sample.mvpsample.data.ImageItem;
 import yskim.sample.mvpsample.data.SampleImageData;
+import yskim.sample.mvpsample.data.source.image.SampleImageRepository;
 import yskim.sample.mvpsample.presenter.MainContract;
 import yskim.sample.mvpsample.presenter.MainPresenter;
 
@@ -38,19 +36,21 @@ public class MainActivity extends AppCompatActivity implements MainContract.View
 
         ButterKnife.bind(this);
 
+        imageAdapter = new ImageAdapter(this);
+        //imageAdapter.setImageItems(SampleImageData.getInstance().getImages(this, 10));
+        recyclerView.setAdapter(imageAdapter);
+
         mainPresenter = new MainPresenter();
         mainPresenter.attachView(this);
-        mainPresenter.setSampleImageData(SampleImageData.getInstance());
+        mainPresenter.setImageAdapterModel(imageAdapter);
+        mainPresenter.setImageAdapterView(imageAdapter);
+        //mainPresenter.setSampleImageData(SampleImageData.getInstance());
+        mainPresenter.setSampleImageData(SampleImageRepository.getInstance());
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-
-        imageAdapter = new ImageAdapter(this);
-        //imageAdapter.setImageItems(SampleImageData.getInstance().getImages(this, 10));
-        recyclerView.setAdapter(imageAdapter);
-
         mainPresenter.loadItems(this, false);
 
         FloatingActionButton fab = findViewById(R.id.fab);
@@ -96,15 +96,20 @@ public class MainActivity extends AppCompatActivity implements MainContract.View
     }
 
     @Override
-    public void addItems(ArrayList<ImageItem> items, boolean isClear) {
-        if(isClear) {
-            imageAdapter.clear();
-        }
-        imageAdapter.setImageItems(items);
+    public void showToast(String title) {
+        Toast.makeText(this, title, Toast.LENGTH_SHORT).show();
     }
 
-    @Override
-    public void notifyAdapter() {
-        imageAdapter.notifyDataSetChanged();
-    }
+    //    @Override
+//    public void addItems(ArrayList<ImageItem> items, boolean isClear) {
+//        if(isClear) {
+//            imageAdapter.clear();
+//        }
+//        imageAdapter.setImageItems(items);
+//    }
+//
+//    @Override
+//    public void notifyAdapter() {
+//        imageAdapter.notifyDataSetChanged();
+//    }
 }
