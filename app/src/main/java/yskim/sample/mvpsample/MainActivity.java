@@ -11,17 +11,25 @@ import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import yskim.sample.mvpsample.adpater.ImageAdapter;
+import yskim.sample.mvpsample.data.ImageItem;
 import yskim.sample.mvpsample.data.SampleImageData;
+import yskim.sample.mvpsample.presenter.MainContract;
+import yskim.sample.mvpsample.presenter.MainPresenter;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements MainContract.View {
 
     @BindView(R.id.recycler_view)
     RecyclerView recyclerView;
 
     private ImageAdapter imageAdapter;
+
+    private MainPresenter mainPresenter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,14 +38,20 @@ public class MainActivity extends AppCompatActivity {
 
         ButterKnife.bind(this);
 
+        mainPresenter = new MainPresenter();
+        mainPresenter.attachView(this);
+        mainPresenter.setSampleImageData(SampleImageData.getInstance());
+
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
         imageAdapter = new ImageAdapter(this);
-        imageAdapter.setImageItems(SampleImageData.getInstance().getImages(this, 10));
+        //imageAdapter.setImageItems(SampleImageData.getInstance().getImages(this, 10));
         recyclerView.setAdapter(imageAdapter);
+
+        mainPresenter.loadItems(this, false);
 
         FloatingActionButton fab = findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -65,12 +79,32 @@ public class MainActivity extends AppCompatActivity {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_reload) {
-            imageAdapter.clear();
-            imageAdapter.setImageItems(SampleImageData.getInstance().getImages(this, 10));
-            imageAdapter.notifyDataSetChanged();
+//            imageAdapter.clear();
+//            imageAdapter.setImageItems(SampleImageData.getInstance().getImages(this, 10));
+//            imageAdapter.notifyDataSetChanged();
+            mainPresenter.loadItems(this, true);
             return true;
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mainPresenter.detachView();
+    }
+
+    @Override
+    public void addItems(ArrayList<ImageItem> items, boolean isClear) {
+        if(isClear) {
+            imageAdapter.clear();
+        }
+        imageAdapter.setImageItems(items);
+    }
+
+    @Override
+    public void notifyAdapter() {
+        imageAdapter.notifyDataSetChanged();
     }
 }
